@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador personalizável</title>
+    <style>
+        /* Estilos gerais do corpo da página */
+        body {
+            background-image: url('https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: rgba(0, 0, 0, 0.6);
+            background-blend-mode: multiply;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            /* Adicionado para suavizar a troca de imagem de fundo */
+            transition: background-image 1s ease-in-out;
+        }
+
+        /* Caixa inicial com o formulário */
+        .caixa-inicial {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2rem 3rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            max-width: 600px;
+        }
+        
+        /* Estilos para os campos de input do formulário */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        /* Estilo do botão */
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #1e90ff; /* Azul mais moderno */
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease-in-out;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(30, 144, 255, 0.5);
+        }
+
+        /* Classes de visibilidade */
+        .escondido {
+            display: none;
+        }
+
+        /* Estilo do container principal do contador */
+        #contador-container {
+            text-align: center;
+        }
+        
+        #event-title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+
+        #contador {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Espaçamento entre os blocos */
+        }
+        
+        /* Estilo de cada bloco (dias, horas, etc) */
+        .bloco-tempo {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+
+        .bloco-tempo .numero {
+            font-size: 3rem;
+            font-weight: bold;
+            display: block; /* Para a animação funcionar bem */
+        }
+        
+        /* Classe de animação: aplicada via JS quando o número muda */
+        .mudando {
+            animation: flip 0.5s ease-in-out;
+        }
+
+        /* Animação de "flip" */
+        @keyframes flip {
+            0% {
+                transform: perspective(400px) rotateX(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: perspective(400px) rotateX(90deg);
+                opacity: 0;
+            }
+            100% {
+                transform: perspective(400px) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* Media queries para responsividade */
+        @media (max-width: 600px) {
+            #contador {
+                flex-direction: column;
+            }
+            #event-title {
+                font-size: 1.8rem;
+            }
+            .bloco-tempo .numero {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="caixa-inicial" id="setup-box">
+        <h1>Contagem regressiva para eventos</h1>
+        <div class="form-group">
+            <label for="event-name">Nome do evento</label>
+            <input type="text" id="event-name" value="Minha viagem">
+        </div>
+        <div class="form-group">
+            <label for="event-date">Data do evento</label>
+            <input type="date" id="event-date">
+        </div>
+        <div class="form-group">
+            <label for="event-time">Hora do evento</label>
+            <input type="time" id="event-time" value="09:00">
+        </div>
+        <button onclick="iniciarContador()">🎇 <strong>Iniciar contagem</strong> 🎇</button>
+    </div>
+
+    <div id="contador-container" class="escondido">
+        <h1 id="event-title"></h1>
+        <div id="contador">
+            <div class="bloco-tempo">
+                <span class="numero" id="dias">00</span>
+                <span>Dias</span>
+            </div>
+            <div class="bloco-tempo">
+                <span class="numero" id="horas">00</span>
+                <span>Horas</span>
+            </div>
+            <div class="bloco-tempo">
+                <span class="numero" id="minutos">00</span>
+                <span>Minutos</span>
+            </div>
+            <div class="bloco-tempo">
+                <span class="numero" id="segundos">00</span>
+                <span>Segundos</span>
+            </div>
+        </div>
+    </div>
+    
+    <audio id="tickSound" src="https://www.soundjay.com/clock/sounds/clock-ticking-2.mp3" preload="auto"></audio>
+    <audio id="finishSound" src="https://www.soundjay.com/human/sounds/applause-2.mp3" preload="auto"></audio>
+
+
+<script>
+    // --- ELEMENTOS DO DOM ---
+    const setupBox = document.getElementById('setup-box');
+    const contadorContainer = document.getElementById('contador-container');
+    const eventTitleEl = document.getElementById('event-title');
+    const diasEl = document.getElementById('dias');
+    const horasEl = document.getElementById('horas');
+    const minutosEl = document.getElementById('minutos');
+    const segundosEl = document.getElementById('segundos');
+    const tickSound = document.getElementById('tickSound');
+    const finishSound = document.getElementById('finishSound');
+    
+    // --- VARIÁVEIS GLOBAIS ---
+    let dataDoEvento;
+    let intervalo;
+    // Variáveis para guardar o tempo anterior e acionar a animação
+    let ultimosSegundos, ultimosMinutos, ultimasHoras, ultimosDias;
+
+    // Função para iniciar o contador com dados do usuário
+    function iniciarContador() {
+        const nomeEvento = document.getElementById('event-name').value;
+        const dataEvento = document.getElementById('event-date').value;
+        const horaEvento = document.getElementById('event-time').value;
+
+        // Validação simples
+        if (!nomeEvento || !dataEvento) {
+            alert("Por favor, preencha o nome e a data do evento!");
+            return;
+        }
+
+        // Combina data e hora para criar um objeto Date válido
+        dataDoEvento = new Date(`${dataEvento}T${horaEvento}`);
+
+        if (dataDoEvento <= new Date()) {
+            alert("Por favor, escolha uma data e hora no futuro!");
+            return;
+        }
+        
+        // Atualiza o título do evento e mostra o contador
+        eventTitleEl.textContent = `Contagem regressiva para: ${nomeEvento}`;
+        setupBox.classList.add('escondido');
+        contadorContainer.classList.remove('escondido');
+
+        // Chama a primeira atualização e depois cria o loop
+        atualizarContador();
+        intervalo = setInterval(atualizarContador, 1000);
+    }
+
+    function atualizarContador() {
+        const agora = new Date();
+        const diferenca = dataDoEvento - agora;
+
+        if (diferenca <= 0) {
+            contadorContainer.innerHTML = `<h1>🥳 O evento chegou! 🥳</h1>`;
+            finishSound.play(); // Toca o som de comemoração
+            clearInterval(intervalo);
+            return;
+        }
+
+        const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+        const segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+        
+        // Toca o som de "tick" a cada segundo
+        tickSound.currentTime = 0;
+        tickSound.play();
+        
+        // --- LÓGICA CORRIGIDA DO FUNDO DINÂMICO ---
+        const bodyEl = document.body;
+        
+        // Etapa 1: A Longa Jornada (mais de 365 dias)
+        if (dias > 365) {
+            bodyEl.style.backgroundImage = "url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop')";
+        
+        // Etapa 2: No Horizonte (entre 31 e 365 dias)
+        } else if (dias > 30) {
+            bodyEl.style.backgroundImage = "url('https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1974&auto=format&fit=crop')";
+
+        // Etapa 3: Antecipação (entre 8 e 30 dias)
+        } else if (dias > 7) {
+            bodyEl.style.backgroundImage = "url('https://images.unsplash.com/photo-1528642474498-1af5c17fd8c4?q=80&w=1974&auto=format&fit=crop')";
+        
+        // Etapa 4: Contagem Final (entre 1 e 7 dias)
+        } else if (dias > 0) {
+            bodyEl.style.backgroundImage = "url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop')";
+        
+        // Etapa 5: O Grande Dia! (menos de 24 horas)
+        } else {
+            bodyEl.style.backgroundImage = "url('https://i.gifer.com/origin/41/41372159048a1b2b87f9f9528b3c9510_w200.gif')";
+        }
+        
+        // Lógica para acionar a animação apenas quando o número muda
+        if (segundos !== ultimosSegundos) animarElemento(segundosEl, formatarTempo(segundos));
+        if (minutos !== ultimosMinutos) animarElemento(minutosEl, formatarTempo(minutos));
+        if (horas !== ultimasHoras) animarElemento(horasEl, formatarTempo(horas));
+        if (dias !== ultimosDias) animarElemento(diasEl, formatarTempo(dias));
+
+        // Atualiza os valores anteriores
+        ultimosSegundos = segundos;
+        ultimosMinutos = minutos;
+        ultimasHoras = horas;
+        ultimosDias = dias;
+    }
+    
+    // Função auxiliar para formatar o tempo com zero à esquerda
+    function formatarTempo(tempo) {
+        return tempo < 10 ? `0${tempo}` : tempo;
+    }
+
+    // Função auxiliar para aplicar a animação e atualizar o texto
+    function animarElemento(elemento, valor) {
+        elemento.classList.add('mudando');
+        // Espera a animação de "ida" terminar (metade do tempo) para trocar o número
+        setTimeout(() => {
+            elemento.textContent = valor;
+        }, 250); // Metade de 0.5s da animação
+        
+        // Remove a classe ao final da animação para que ela possa ser reativada
+        setTimeout(() => {
+            elemento.classList.remove('mudando');
+        }, 500);
+    }
+    
+    // Bônus: Pré-preencher a data de amanhã para facilitar o teste
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+    document.getElementById('event-date').value = amanha.toISOString().split('T')[0];
+
+</script>
+</body>
+</html>
