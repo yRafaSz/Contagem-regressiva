@@ -1,0 +1,21 @@
+{
+  "name": "Contagem Regressiva Ano Novo",
+  "short_name": "Ano Novo",
+  "description": "Uma contagem regressiva interativa para o Ano Novo.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#060606",
+  "theme_color": "#dcb805",
+  "icons": [
+    {
+      "src": "imagem192x.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "imagem512x.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
